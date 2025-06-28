@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   LayoutDashboard,
   Newspaper,
+  Bell
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -66,6 +67,13 @@ const Navbar = () => {
             >
               <Newspaper size={18} />
               <span>Report an Issue</span>
+            </Link>
+            <Link
+              href="../pages/safety"
+              className="flex items-center gap-1 px-3 py-2 rounded hover:bg-gray-100"
+            >
+              <Bell size={18} />
+              <span>Your Location</span>
             </Link>
           </nav>
 

@@ -1,5 +1,5 @@
 "use client";
-import { Flag, ThumbsUp } from "lucide-react";
+import { Flag } from "lucide-react";
 import React from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -22,40 +22,36 @@ export default function UserDashboardPage() {
       }
       try {
         const res = await axios.get("http://localhost:5000/api/dashboard", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
         setUser(res.data);
       } catch (error) {
         console.log(error);
-        localStorage.removeItem("token"); // Clean token if invalid
+        localStorage.removeItem("token");
         router.push("../pages/login");
       }
     };
     fetchUser();
   }, [router]);
 
+  const fetchIssues = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await axios.get(
+        "http://localhost:5000/api/dashboard/userissues",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setIssues(res.data.issues);
+      setReports(res.data.totalReports);
+      setUpvotes(res.data.totalUpvotesRecieved);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   React.useEffect(() => {
-    const fetchIssues = async () => {
-      const token = localStorage.getItem("token");
-      try {
-        const res = await axios.get(
-          "http://localhost:5000/api/dashboard/userissues",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        console.log(res.data);
-        setIssues(res.data.issues);
-        setReports(res.data.totalReports);
-        setUpvotes(res.data.totalUpvotesRecieved);
-      } catch (error) {
-        console.log(error);
-      }
-    };
     fetchIssues();
   }, [router]);
 
@@ -64,15 +60,32 @@ export default function UserDashboardPage() {
     router.push("../pages/login");
   };
 
-  if (!user) {
-    return <div>Loading...</div>;
-  }
+  const handleStatusChange = async (issueId, newStatus) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.patch(
+        `http://localhost:5000/api/dashboard/changestatus/${issueId}/status`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      fetchIssues();
+    } catch (error) {
+      console.error("Failed to change status:", error);
+    }
+  };
+
+  if (!user) return <div>Loading...</div>;
 
   const userInitial = user.name ? user.name[0].toUpperCase() : "U";
 
   return (
     <>
-      <Navbar/>
+      <Navbar />
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-between items-center my-6">
           <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -85,54 +98,35 @@ export default function UserDashboardPage() {
         </div>
 
         <div className="grid grid-cols-12 gap-6">
-          {/* Left sidebar - User info */}
+          {/* Sidebar */}
           <div className="col-span-12 md:col-span-3">
-            <div className="bg-white p-6 rounded-lg shadow mb-6">
-              <div className="flex flex-col items-center mb-4">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-3xl font-medium mb-4">
-                  {userInitial}
-                </div>
-                <h2 className="text-xl font-bold">{user.name}</h2>
-                <p className="text-gray-500 text-sm">{user.email}</p>
-                <p className="text-gray-400 text-xs mt-1">({user.role})</p>{" "}
-                {/* 👈 Show role */}
+            <div className="bg-white p-6 rounded-lg shadow mb-6 text-center">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-3xl font-medium mx-auto mb-4">
+                {userInitial}
               </div>
+              <h2 className="text-xl font-bold">{user.name}</h2>
+              <p className="text-gray-500 text-sm">{user.email}</p>
+              <p className="text-gray-400 text-xs mt-1">({user.role})</p>
 
-              <button className="w-full py-2 border border-gray-300 rounded font-medium mb-6">
-                Edit Profile
-              </button>
-
-              <div className="space-y-3 text-sm">
+              <div className="mt-4 text-sm text-left">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Reports created</span>
                   <span className="font-medium">{reports}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Upvotes received</span>
-                  <span className="font-medium">{upvotes}</span>
-                </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow">
+            <div className="bg-white p-6 rounded-lg shadow text-center">
               <h3 className="font-bold mb-4">Community Impact</h3>
-
-              <div className="grid grid-cols-2 gap-4 text-center">
-                <div className="bg-gray-50 p-3 rounded">
-                  <Flag size={18} className="mx-auto mb-1" />
-                  <div className="font-bold text-lg">{reports}</div>
-                  <div className="text-xs text-gray-500">Reports</div>
-                </div>
-                <div className="bg-gray-50 p-3 rounded">
-                  <ThumbsUp size={18} className="mx-auto mb-1" />
-                  <div className="font-bold text-lg">{upvotes}</div>
-                  <div className="text-xs text-gray-500">Upvotes</div>
-                </div>
+              <div className="bg-gray-50 p-3 rounded">
+                <Flag size={18} className="mx-auto mb-1" />
+                <div className="font-bold text-lg">{reports}</div>
+                <div className="text-xs text-gray-500">Reports</div>
               </div>
             </div>
           </div>
 
-          {/* Main content area */}
+          {/* Main content */}
           <div className="col-span-12 md:col-span-9">
             <h2 className="text-xl font-bold mb-4">Your Reported Issues</h2>
             {issues.length === 0 ? (
@@ -157,6 +151,28 @@ export default function UserDashboardPage() {
                         Status:{" "}
                         <span className="font-medium">{issue.status}</span>
                       </p>
+
+                      {/* Show status buttons only for admin */}
+                      {user.role === "admin" && (
+                        <div className="mt-2 space-x-2">
+                          <button
+                            className="px-3 py-1 text-sm bg-orange-500 text-white rounded"
+                            onClick={() =>
+                              handleStatusChange(issue._id, "in progress")
+                            }
+                          >
+                            Set to In Progress
+                          </button>
+                          <button
+                            className="px-3 py-1 text-sm bg-green-500 text-white rounded"
+                            onClick={() =>
+                              handleStatusChange(issue._id, "resolved")
+                            }
+                          >
+                            Set to Resolved
+                          </button>
+                        </div>
+                      )}
                     </div>
                     {issue.image?.url && (
                       <Image

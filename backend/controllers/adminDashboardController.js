@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const Issue = require('../models/Issue');
+const Log = require('../models/Logs');
 
 exports.getAllUsers = async (req, res) => {
   if (!req.user || req.user.role !== 'admin') {
@@ -30,3 +32,31 @@ exports.getStatusCount = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+exports.changeStatus = async (req, res) => {
+  try {
+    const issue = await Issue.findById(req.params.id)
+    if (!issue){
+      return res.status(404).json({ message: "Issue not found" });
+    }
+    const { status } = req.body;
+    issue.status = status;
+    if (status==='resolved'){
+      await Log.create({
+        title: issue.title,
+        category: issue.category,
+        reportedBy: issue.reportedBy,
+        status: "resolved",
+        dangerLevel: issue.dangerLevel,
+      })
+      await issue.deleteOne()
+    }
+    else{
+      await issue.save()
+    }
+    res.status(200).json({ message: "Status updated successfully", issue });
+  } catch (error) {
+    console.error("Failed to change status:", error);
+    res.status(500).json({ message: "Server error", error: error.message });    
+  }
+}

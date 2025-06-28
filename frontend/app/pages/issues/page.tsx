@@ -47,35 +47,35 @@ export default function IssuesPage() {
     );
   }, [search, issues]);
 
-  const handleUpvote = async (issueId: string) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("Please login to upvote.");
-        return;
-      }
+  // const handleUpvote = async (issueId: string) => {
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     if (!token) {
+  //       alert("Please login to upvote.");
+  //       return;
+  //     }
 
-      const res = await axios.put(
-        `http://localhost:5000/api/issues/${issueId}/upvote`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  //     const res = await axios.put(
+  //       `http://localhost:5000/api/issues/${issueId}/upvote`,
+  //       {},
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
 
-      setIssues((prev) =>
-        prev.map((issue) =>
-          issue._id === issueId
-            ? { ...issue, upvotes: res.data.upvotes }
-            : issue
-        )
-      );
-    } catch (error: any) {
-      alert(error?.response?.data?.message || "Failed to upvote.");
-    }
-  };
+  //     setIssues((prev) =>
+  //       prev.map((issue) =>
+  //         issue._id === issueId
+  //           ? { ...issue, upvotes: res.data.upvotes }
+  //           : issue
+  //       )
+  //     );
+  //   } catch (error: any) {
+  //     alert(error?.response?.data?.message || "Failed to upvote.");
+  //   }
+  // };
 
   return (
     <>
@@ -111,14 +111,14 @@ export default function IssuesPage() {
                   📍 {lat.toFixed(4)}, {lon.toFixed(4)}
                 </p>
                 <p className="mt-2 text-sm">
-                  <strong>Danger Level:</strong> <em>To be assessed</em>
+                  <strong>Danger Level:</strong> <em>{issue.dangerLevel}</em>
                 </p>
-                <button
+                {/* <button
                   onClick={() => handleUpvote(issue._id)}
                   className="mt-3 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
                 >
                   👍 Upvote ({issue.upvotes})
-                </button>
+                </button> */}
               </div>
             );
           })}
